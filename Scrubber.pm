@@ -32,7 +32,7 @@ for grep { $_ ne 'all' } keys %EXPORT_TAGS;
 @EXPORT_OK = @{$EXPORT_TAGS{all}};
 @EXPORT = qw(scrubber_init);
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 ###----------------------------------------------------------------###
 
@@ -99,15 +99,17 @@ sub import {
             scrubber_add_method('confess');
             scrubber_add_method('carp');
             scrubber_add_method('cluck');
-        }
-        if ($_[$i] eq ':Syslog') {
+        } elsif ($_[$i] eq ':Syslog') {
             scrubber_add_method('main::syslog');
+        } elsif ($_[$i] =~ /^\+/) {
+            scrubber_add_method(substr($_[$i],1,999));
+            splice @_, $i, 1, ();
+        } elsif ($_[$i] =~ /^(dis|en)able$/) {
+            my $val = $1 eq 'dis' ? 0 : 1;
+            splice @_, $i, 1, ();
+            die 'Cannot both enable and disable $SCRUBBER during import' if defined $change && $change != $val;
+            $SCRUBBER = $val;
         }
-        next if $_[$i] !~ /^(dis|en)able$/;
-        my $val = $1 eq 'dis' ? 0 : 1;
-        splice @_, $i, 1, ();
-        die 'Cannot both enable and disable $SCRUBBER during import' if defined $change && $change != $val;
-        $SCRUBBER = $val;
     }
 
     scrubber_add_signal('WARN');
@@ -140,11 +142,12 @@ sub scrubber_stop  {
 
   use Log::Scrubber;             # Override warn() and die() and import scrubber_init()
   use Log::Scrubber qw(:all);    # Override everything this module knows
-  use Log::Scrubber qw(:Carp);   # Only override Carp:: methods
+  use Log::Scrubber qw(:Carp);   # Only override Carp methods
   use Log::Scrubber qw(:Syslog); # Only override syslog()
   use Log::Scrubber qw(scrubber);# scrubber() for use on your own
+  use Log::Scrubber qw(+Custom::Method);# Override any perl method
 
-  use Log::Scrubber qw(:Syslog :Carp); # Or combine a few
+  use Log::Scrubber qw($SCRUBBER :Carp +My::Logs); # Or combine a few
 
   Example:
 
@@ -221,7 +224,7 @@ sub _scrubber {
                 }
             }
         } elsif (ref $sub_msg) {
-            return $sub_msg
+            # TODO: currently only ARRAY, HASH and SCALAR are supported
         } else {
             push @data, \$msg;
         }
@@ -249,6 +252,7 @@ sub _scrubber {
 }
 
 sub scrubber {
+    if ($#_ == 0) { return _scrubber $_[0]; }
     return map { _scrubber $_ } @_;
 }
 
@@ -429,15 +433,16 @@ __END__
 Additional methods created by this package.
 
   scrubber_init()
-    scrubber_init( {		# Initialize the scrubber.
+    scrubber_init( { # Initialize the scrubber.
       $ereg1 => $rep1,
       $ereg2 => $rep2,
-      $key   => sub { my ($key,$val) = @_; $val++; return $val; },
+      $key1  => sub { my ($key,$val) = @_; $val++; return $val; },
       $key2  => sub { my ($key,$val) = @_; $val =~ s/1/2/; return $val; },
       } )
 
   scrubber()
-    @clean = scrubber( @dirty )	# Allows manual use of the scrubber
+    @clean = scrubber( @dirty ); # Allows manual use of the scrubber
+    $clean = scrubber $clean;
 
   scrubber_enabled()
     if (scrubber_enabled()) { print "Yes it is\n"; }
@@ -448,11 +453,11 @@ Additional methods created by this package.
 
   scrubber_add_method
   scrubber_remove_method
-    scrubber_add_signal('Carp::croak');
+    scrubber_add_method('Carp::croak');
 
   scrubber_add_package
   scrubber_remove_package
-    scrubber_add_signal('Carp');
+    scrubber_add_package('Carp'); # use with caution, it overrides EVERYTHING
 
 =head2 LOCAL SCOPING
 
@@ -470,17 +475,19 @@ The scrubber can be locally modified.
 
 Many. The methods are exported or overridden according to this
 
-  $SIG{__WARN__}	-	Always overridden
-  $SIG{__DIE__}		-	Always overridden
-  warnings::warn()	-	Always overridden
-  warnings::warnif()	-	Always overridden
+  $SIG{__WARN__}     - Always overridden
+  $SIG{__DIE__}      - Always overridden
+  warnings::warn()   - Always overridden
+  warnings::warnif() - Always overridden
 
-  Carp::croak()		-	Only exported with :Carp or :all
-  Carp::carp()		-	Only exported with :Carp or :all
-  Carp::confess()	-	Only exported with :Carp or :all
-  Carp::cluck()		-	Only exported with :Carp or :all
+  Carp::croak()      - Only exported with :Carp or :all
+  Carp::carp()       - Only exported with :Carp or :all
+  Carp::confess()    - Only exported with :Carp or :all
+  Carp::cluck()      - Only exported with :Carp or :all
 
-  main::syslog()	-	Only exported with :Syslog or :all
+  main::syslog()     - Only exported with :Syslog or :all
+
+  Custom::method()   - Custom methods can also be overridden.
 
 =head1 AUTHOR
 
