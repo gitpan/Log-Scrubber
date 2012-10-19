@@ -1,13 +1,52 @@
-use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.1.1.1 2003/03/03 05:20:28 lem Exp $
+use strict;
+use warnings;
 
-WriteMakefile(
-    'NAME'		=> 'Log::Scrubber',
-    'VERSION_FROM'	=> 'Scrubber.pm', # finds $VERSION
-    'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
-	      ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-	       (ABSTRACT_FROM	=> 'Scrubber.pm',
-		AUTHOR     	=> 'Jason Terry') : ()),
 
+
+use ExtUtils::MakeMaker 6.30;
+
+
+
+my %WriteMakefileArgs = (
+  "ABSTRACT" => "Perl extension to avoid logging sensitive data",
+  "AUTHOR" => "Jason Terry <oaxlin\@cpan.org>",
+  "BUILD_REQUIRES" => {},
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
+  },
+  "DISTNAME" => "Log-Scrubber",
+  "EXE_FILES" => [],
+  "LICENSE" => "perl",
+  "NAME" => "Log::Scrubber",
+  "PREREQ_PM" => {
+    "Carp" => 0,
+    "Clone" => 0
+  },
+  "VERSION" => "0.12",
+  "test" => {
+    "TESTS" => "t/*.t"
+  }
 );
+
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+
