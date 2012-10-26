@@ -15,4 +15,4 @@ name: Log-Scrubber
 requires:
   Carp: 0
   Clone: 0
-version: 0.12
+version: 0.13
