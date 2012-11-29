@@ -1,9 +1,38 @@
 ==================================================
-Changes from 2011-10-27 00:00:00 +0000 to present.
+Changes from 2011-11-30 00:00:00 +0000 to present.
 ==================================================
 
 -----------------------------------------
-version 0.13 at 2012-10-26 19:13:06 +0000
+version 0.14 at 2012-11-29 16:56:16 +0000
+-----------------------------------------
+
+  Change: a8be6bed5132a08c20a938f380e923499b6c9792
+  Author: Jason Terry <jterry@jterry-laptop.(none)>
+  Date : 2012-11-19 13:18:10 +0000
+
+    Import now enables/disables/errors in a better fashion 
+
+  Change: 7e9cb3906f2b219394cb917f59cc770674962921
+  Author: Jason Terry <jterry@jterry-laptop.(none)>
+  Date : 2012-11-19 11:56:12 +0000
+
+    Import now errors better when enabling/disabling improperly 
+
+  Change: 1ecb9424f6f1e61ff2521fb4be3e57a02920362b
+  Author: Jason Terry <jterry@jterry-laptop.(none)>
+  Date : 2012-11-19 11:45:45 +0000
+
+    Add new tests to make sure the scrubber doesn't bomb on common ref
+    types 
+
+  Change: d5964c064c72834b937b07a4b9d76218d6618a60
+  Author: Jason Terry <jterry@jterry-laptop.(none)>
+  Date : 2012-11-06 10:20:42 +0000
+
+    Move scrubber to lib 
+
+-----------------------------------------
+version 0.13 at 2012-10-26 19:03:19 +0000
 -----------------------------------------
 
   Change: 083f26b6359e924889beedf3fcbd0de92ae0f0fb
