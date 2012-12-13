@@ -23,7 +23,7 @@ my %WriteMakefileArgs = (
     "Carp" => 0,
     "Clone" => 0
   },
-  "VERSION" => "0.14",
+  "VERSION" => "0.15",
   "test" => {
     "TESTS" => "t/*.t"
   }
